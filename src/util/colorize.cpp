@@ -27,20 +27,23 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 std::string colorize_url(const std::string &url)
 {
 	// Forbid escape codes in URL
-	if (url.find('\x1b') != std::string::npos) {
+	if (url.find('\x1b') != std::string::npos)
+	{
 		throw std::runtime_error("Unable to open URL as it contains escape codes");
 	}
 
 	auto urlHandleRAII = std::unique_ptr<CURLU, decltype(&curl_url_cleanup)>(
-			curl_url(), curl_url_cleanup);
+		curl_url(), curl_url_cleanup);
 	CURLU *urlHandle = urlHandleRAII.get();
 
 	auto rc = curl_url_set(urlHandle, CURLUPART_URL, url.c_str(), 0);
-	if (rc != CURLUE_OK) {
+	if (rc != CURLUE_OK)
+	{
 		throw std::runtime_error("Unable to open URL as it is not valid");
 	}
 
-	auto url_get = [&] (CURLUPart what) -> std::string {
+	auto url_get = [&](CURLUPart what) -> std::string
+	{
 		char *tmp = nullptr;
 		curl_url_get(urlHandle, what, &tmp, 0);
 		std::string ret(tmp ? tmp : "");
@@ -56,7 +59,7 @@ std::string colorize_url(const std::string &url)
 	auto path = url_get(CURLUPART_PATH);
 	auto query = url_get(CURLUPART_QUERY);
 	auto fragment = url_get(CURLUPART_FRAGMENT);
-	auto zoneid = url_get(CURLUPART_ZONEID);
+	// auto zoneid = url_get(CURLUPART_ZONEID);
 
 	std::ostringstream os;
 
@@ -76,29 +79,38 @@ std::string colorize_url(const std::string &url)
 	os << white;
 	bool was_alphanum = true;
 	std::string host_s = host;
-	for (size_t i = 0; i < host_s.size(); i++) {
+	for (size_t i = 0; i < host_s.size(); i++)
+	{
 		char c = host_s[i];
 		bool is_alphanum = isalnum(c) || ispunct(c);
-		if (is_alphanum == was_alphanum) {
+		if (is_alphanum == was_alphanum)
+		{
 			// skip
-		} else if (is_alphanum) {
+		}
+		else if (is_alphanum)
+		{
 			os << white;
-		} else {
+		}
+		else
+		{
 			os << red;
 		}
 		was_alphanum = is_alphanum;
 
-		if (is_alphanum) {
+		if (is_alphanum)
+		{
 			os << c;
-		} else {
+		}
+		else
+		{
 			os << "%" << std::setfill('0') << std::setw(2) << std::hex
-				<< (static_cast<unsigned int>(c) & 0xff);
+			   << (static_cast<unsigned int>(c) & 0xff);
 		}
 	}
 
 	os << grey;
-	if (!zoneid.empty())
-		os << "%" << zoneid;
+	// if (!zoneid.empty())
+	// 	os << "%" << zoneid;
 	if (!port.empty())
 		os << ":" << port;
 	os << path;

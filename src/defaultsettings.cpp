@@ -527,6 +527,10 @@ void set_default_settings()
 	settings->setDefault("enable_mapgen_debug_info", "false");
 	Mapgen::setDefaultSettings(settings);
 
+	// planet
+	settings->setDefault("planet_enable", "false");
+	settings->setDefault("planet_radius", "30");
+
 	// Server list announcing
 	settings->setDefault("server_announce", "false");
 	settings->setDefault("server_url", "");

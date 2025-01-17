@@ -682,6 +682,11 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 	shaders_header << "#define ENABLE_WAVING_PLANTS " << g_settings->getBool("enable_waving_plants") << "\n";
 	shaders_header << "#define ENABLE_TONE_MAPPING " << g_settings->getBool("tone_mapping") << "\n";
 
+	// Add planet-specific settings to header
+	if (g_settings->getBool("planet_enable"))
+		shaders_header << "#define ENABLE_PLANET \n";
+	shaders_header << "#define PLANET_RADIUS " << g_settings->getU16("planet_radius") << "\n";
+
 	if (g_settings->getBool("enable_dynamic_shadows")) {
 		shaders_header << "#define ENABLE_DYNAMIC_SHADOWS 1\n";
 		if (g_settings->getBool("shadow_map_color"))

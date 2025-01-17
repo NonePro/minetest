@@ -1,23 +1,8 @@
-/*
-Minetest
-Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
-Copyright (C) 2010-2013 blue42u, Jonathon Anderson <anderjon@umail.iu.edu>
-Copyright (C) 2010-2013 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 2.1 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-*/
+// Luanti
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+// Copyright (C) 2010-2013 blue42u, Jonathon Anderson <anderjon@umail.iu.edu>
+// Copyright (C) 2010-2013 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
 
 #include "client/hud.h"
 #include <string>
@@ -170,9 +155,7 @@ void Hud::readScalingSetting()
 
 Hud::~Hud()
 {
-	g_settings->deregisterChangedCallback("dpi_change_notifier", setting_changed_callback, this);
-	g_settings->deregisterChangedCallback("display_density_factor", setting_changed_callback, this);
-	g_settings->deregisterChangedCallback("hud_scaling", setting_changed_callback, this);
+	g_settings->deregisterAllChangedCallbacks(this);
 
 	if (m_selection_mesh)
 		m_selection_mesh->drop();
@@ -302,20 +285,20 @@ void Hud::drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f al
 
 	// Draw items
 	core::rect<s32> imgrect(0, 0, m_hotbar_imagesize, m_hotbar_imagesize);
-	const s32 list_size = mainlist ? mainlist->getSize() : 0;
-	for (s32 i = inv_offset; i < itemcount && i < list_size; i++) {
+	const s32 list_max = std::min(itemcount, (s32) (mainlist ? mainlist->getSize() : 0 ));
+	for (s32 i = inv_offset; i < list_max; i++) {
 		s32 fullimglen = m_hotbar_imagesize + m_padding * 2;
 
 		v2s32 steppos;
 		switch (direction) {
 		case HUD_DIR_RIGHT_LEFT:
-			steppos = v2s32(-(m_padding + (i - inv_offset) * fullimglen), m_padding);
+			steppos = v2s32(m_padding + (list_max - 1 - i - inv_offset) * fullimglen, m_padding);
 			break;
 		case HUD_DIR_TOP_BOTTOM:
 			steppos = v2s32(m_padding, m_padding + (i - inv_offset) * fullimglen);
 			break;
 		case HUD_DIR_BOTTOM_TOP:
-			steppos = v2s32(m_padding, -(m_padding + (i - inv_offset) * fullimglen));
+			steppos = v2s32(m_padding, m_padding + (list_max - 1 - i - inv_offset) * fullimglen);
 			break;
 		default:
 			steppos = v2s32(m_padding + (i - inv_offset) * fullimglen, m_padding);

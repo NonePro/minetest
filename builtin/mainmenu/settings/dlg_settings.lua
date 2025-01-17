@@ -1,4 +1,4 @@
---Minetest
+--Luanti
 --Copyright (C) 2022 rubenwardy
 --
 --This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,8 @@
 local component_funcs =  dofile(core.get_mainmenu_path() .. DIR_DELIM ..
 		"settings" .. DIR_DELIM .. "components.lua")
 
+local shader_warning_component =  dofile(core.get_mainmenu_path() .. DIR_DELIM ..
+		"settings" .. DIR_DELIM .. "shader_warning_component.lua")
 local shadows_component =  dofile(core.get_mainmenu_path() .. DIR_DELIM ..
 		"settings" .. DIR_DELIM .. "shadows_component.lua")
 
@@ -152,7 +154,12 @@ local function load()
 
 	table.insert(page_by_id.controls_keyboard_and_mouse.content, 1, change_keys)
 	do
-		local content = page_by_id.graphics_and_audio_effects.content
+		local content = page_by_id.graphics_and_audio_graphics.content
+		table.insert(content, 1, shader_warning_component)
+
+		content = page_by_id.graphics_and_audio_effects.content
+		table.insert(content, 1, shader_warning_component)
+
 		local idx = table.indexof(content, "enable_dynamic_shadows")
 		table.insert(content, idx, shadows_component)
 
@@ -342,14 +349,16 @@ local function check_requirements(name, requires)
 
 	local video_driver = core.get_active_driver()
 	local shaders_support = video_driver == "opengl" or video_driver == "opengl3" or video_driver == "ogles2"
+	local touch_support = core.irrlicht_device_supports_touch()
 	local touch_controls = core.settings:get("touch_controls")
 	local special = {
 		android = PLATFORM == "Android",
 		desktop = PLATFORM ~= "Android",
-		-- When touch_controls is "auto", we don't which input method will be used,
-		-- so we show settings for both.
-		touchscreen = touch_controls == "auto" or core.is_yes(touch_controls),
-		keyboard_mouse = touch_controls == "auto" or not core.is_yes(touch_controls),
+		touch_support = touch_support,
+		-- When touch_controls is "auto", we don't know which input method will
+		-- be used, so we show settings for both.
+		touchscreen = touch_support and (touch_controls == "auto" or core.is_yes(touch_controls)),
+		keyboard_mouse = not touch_support or (touch_controls == "auto" or not core.is_yes(touch_controls)),
 		shaders_support = shaders_support,
 		shaders = core.settings:get_bool("enable_shaders") and shaders_support,
 		opengl = video_driver == "opengl",
@@ -706,7 +715,7 @@ local function buttonhandler(this, fields)
 
 	local function after_setting_change(comp)
 		write_settings_early()
-		if comp.setting.name == "touch_controls" then
+		if comp.setting and comp.setting.name == "touch_controls" then
 			-- Changing the "touch_controls" setting may result in a different
 			-- page list.
 			regenerate_page_list(dialogdata)
@@ -734,7 +743,7 @@ end
 
 local function eventhandler(event)
 	if event == "DialogShow" then
-		-- Don't show the "MINETEST" header behind the dialog.
+		-- Don't show the header image behind the dialog.
 		mm_game_theme.set_engine(true)
 		return true
 	end

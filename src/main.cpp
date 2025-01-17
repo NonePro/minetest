@@ -61,7 +61,7 @@ extern "C" {
 
 // TODO: luanti.conf with migration
 #define CONFIGFILE "minetest.conf"
-#define DEBUGFILE "debug.txt"
+#define DEBUGFILE "debug.log"
 #define DEFAULT_SERVER_PORT 30000
 
 #define ENV_NO_COLOR "NO_COLOR"

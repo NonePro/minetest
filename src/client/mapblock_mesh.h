@@ -214,6 +214,8 @@ public:
 	void updateTransparentBuffers(v3f camera_pos, v3s16 block_pos);
 	void consolidateTransparentBuffers();
 
+	void updatePlanetOffset(v3s16 planet_offset);
+
 	/// get the list of transparent buffers
 	const std::vector<PartialMeshBuffer> &getTransparentBuffers() const
 	{
@@ -268,6 +270,9 @@ private:
 	std::vector<PartialMeshBuffer> m_transparent_buffers;
 	// Is m_transparent_buffers currently in consolidated form?
 	bool m_transparent_buffers_consolidated = false;
+
+	// Mesh offset that is caused by the map wrapping around when rendering in planet mode
+	v3s16 m_planet_offset;
 };
 
 /*!

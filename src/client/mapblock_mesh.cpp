@@ -595,7 +595,8 @@ MapBlockMesh::MapBlockMesh(Client *client, MeshMakeData *data, v3s16 camera_offs
 	m_bounding_sphere_center((data->side_length * 0.5f - 0.5f) * BS),
 	m_animation_force_timer(0), // force initial animation
 	m_last_crack(-1),
-	m_last_daynight_ratio((u32) -1)
+	m_last_daynight_ratio((u32) -1),
+	m_planet_offset(v3s16(0, 0, 0))
 {
 	ZoneScoped;
 
@@ -929,6 +930,16 @@ void MapBlockMesh::consolidateTransparentBuffers()
 	}
 
 	m_transparent_buffers_consolidated = true;
+}
+
+void MapBlockMesh::updatePlanetOffset(v3s16 planet_offset) {
+	if (planet_offset != m_planet_offset) {
+		scene::IMesh *mesh = getMesh(); // 乱猜的
+		translateMesh(mesh, intToFloat(m_planet_offset - planet_offset, BS));
+		// if (m_enable_vbo)
+		// 	mesh->setDirty();
+		m_planet_offset = planet_offset;
+	}
 }
 
 video::SColor encode_light(u16 light, u8 emissive_light)

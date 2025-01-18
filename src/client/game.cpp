@@ -764,6 +764,7 @@ protected:
 			const ItemStack &selected_item, const ItemStack &hand_item, f32 dtime);
 	void updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 			const CameraOrientation &cam);
+	void handlePlanet();
 	void updateClouds(float dtime);
 	void updateShadows();
 	void drawScene(ProfilerGraph *graph, RunStats *stats);
@@ -932,6 +933,8 @@ private:
 	bool m_first_loop_after_window_activation = false;
 	bool m_camera_offset_changed = false;
 	bool m_game_focused = false;
+
+	bool m_planet_warp_changed = false;
 
 	bool m_does_lost_focus_pause_game = false;
 
@@ -1183,6 +1186,7 @@ void Game::run()
 		processPlayerInteraction(dtime, m_game_ui->m_flags.show_hud);
 		updateFrame(&graph, &stats, dtime, cam_view);
 		updateProfilerGraphs(&graph);
+		handlePlanet();
 
 		if (m_does_lost_focus_pause_game && !device->isWindowFocused() && !isMenuActive()) {
 			showPauseMenu();
@@ -4182,6 +4186,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (runData.update_draw_list_timer >= update_draw_list_delta
 			|| runData.update_draw_list_last_cam_dir.getDistanceFrom(camera_direction) > 0.2
 			|| m_camera_offset_changed
+			|| m_planet_warp_changed
 			|| client->getEnv().getClientMap().needsUpdateDrawList()) {
 		runData.update_draw_list_timer = 0;
 		client->getEnv().getClientMap().updateDrawList();
@@ -4241,6 +4246,26 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	}
 
 	g_profiler->avg("Game::updateFrame(): update frame [ms]", tt_update.stop(true));
+}
+
+void Game::handlePlanet() {
+	LocalPlayer *player = client->getEnv().getLocalPlayer();
+	// Quick hack: Teleport to other side of planet at planet edges
+	if (g_settings->getBool("planet_enable")) {
+		// Round planet circumference up to even number of blocks, value in x/z coordinates
+		int planet_circumference = ceil(g_settings->getU16("planet_radius") * M_PI) * BS * MAP_BLOCKSIZE * 2;
+		v3f playerpos = player->getPosition();
+		if (playerpos.X > planet_circumference / 2 - 0.5 * BS)
+			playerpos.X = -(float)planet_circumference / 2 - 0.5 * BS;
+		if (playerpos.X < -planet_circumference / 2 - 0.5 * BS)
+			playerpos.X = (float)planet_circumference / 2 - 0.5 * BS;
+		if (playerpos.Z > planet_circumference / 2 - 0.5 * BS)
+			playerpos.Z = -(float)planet_circumference / 2 - 0.5 * BS;
+		if (playerpos.Z < -planet_circumference / 2 - 0.5 * BS)
+			playerpos.Z = (float)planet_circumference / 2 - 0.5 * BS;
+		m_planet_warp_changed = player->getPosition() != playerpos;
+		player->setPosition(playerpos);
+	}
 }
 
 void Game::updateClouds(float dtime)

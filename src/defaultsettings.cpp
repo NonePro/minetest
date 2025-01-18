@@ -530,6 +530,7 @@ void set_default_settings()
 	// planet
 	settings->setDefault("planet_enable", "false");
 	settings->setDefault("planet_radius", "30");
+	settings->setDefault("planet_centrifugal_enable", "true");
 
 	// Server list announcing
 	settings->setDefault("server_announce", "false");

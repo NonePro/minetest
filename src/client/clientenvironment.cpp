@@ -146,6 +146,11 @@ void ClientEnvironment::step(float dtime)
 			if (lplayer->move_resistance > 0) {
 				v3f speed = lplayer->getSpeed();
 
+				// Planet: Apply centrifugal force
+				if (g_settings->getBool("planet_enable") && g_settings->getBool("planet_centrifugal_enable") && !lplayer->in_liquid)
+					speed.Y += (speed.X * speed.X + speed.Z * speed.Z) /
+							(g_settings->getU16("planet_radius") * MAP_BLOCKSIZE * BS + lplayer->getPosition().Y) * dtime_part * 2;
+
 				// How much the node's move_resistance blocks movement, ranges
 				// between 0 and 1. Should match the scale at which liquid_viscosity
 				// increase affects other liquid attributes.
